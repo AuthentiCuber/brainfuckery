@@ -1,0 +1,25 @@
+[project]
+name = "python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pylsp-mypy>=0.7.1",
+    "python-lsp-server>=1.14.0",
+    "ruff>=0.15.14",
+]
+
+[tool.mypy]
+strict = true
+python_executable = ".venv/bin/python"
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
