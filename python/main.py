@@ -17,7 +17,7 @@ BF_CHARS = [tt.value for tt in TokenType]
 
 
 @dataclass
-class Token:
+class Command:
     tok_type: TokenType
     param: int  # instruction jump address for JZ & JNZ, number of repetitions otherwise
 
@@ -26,19 +26,5 @@ def is_valid_bf(char: str) -> bool:
     return char in BF_CHARS
 
 
-def lex(inp: str) -> list[Token]:
-    toks: list[Token] = []
-
-    inp_index = 0
-    while inp_index < len(inp):
-        char = inp[inp_index]
-        if not is_valid_bf(char):
-            inp_index += 1
-            continue
-
-        if char in "[]":
-            tok_type = TokenType(char)
-        else:
-            tok_type = TokenType(char)
-
-    return toks
+def tokenise(inp: str) -> list[TokenType]:
+    return [TokenType(char) for char in inp if is_valid_bf(char)]
