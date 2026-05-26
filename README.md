@@ -20,7 +20,7 @@ This means I will not be implementing any fancy optimisations or tricks.
 I am implementing these interpreters in the most straightforward way I can think of.
 The general design of the will be as follows:
 
-`.bf file -> tokenisation -> parsing -> interpreter -> output`
+    .bf file -> tokenisation -> parsing -> interpreter -> output
 
 The tokeniser converts the plaintext input into a list of symbolic tokens, ignoring any characters
 that are not one of Brainfuck's 8 commands. The parser collapses any repeated data or data-pointer commands
