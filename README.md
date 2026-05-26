@@ -12,6 +12,7 @@ Such features include:
 - structs/enums/objects to represent tokens
 - several data types: strings, characters, arrays, integers/bytes
 - control structures: different kinds of loops, if, switch-case, pattern matching
+- a simple CLI
 
 ## Approach
 
@@ -32,7 +33,7 @@ Inspired by [Tsoding's BF JIT compiler](https://github.com/tsoding/bfjit).
 
 ## Languages
 
-- [ ] python
+- [x] python
 - [ ] C
 - [ ] Haskell
 - [ ] Javascript
