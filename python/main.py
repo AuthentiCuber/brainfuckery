@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from io import StringIO
+from argparse import ArgumentParser
 
 
 class TokenType(Enum):
@@ -105,8 +106,12 @@ def run(comms: list[Command]) -> str:
 
 
 if __name__ == "__main__":
-    inp = input()
-    tokens = tokenise(inp)
-    commands = parse(tokens)
-    output = run(commands)
+    parser = ArgumentParser()
+    parser.add_argument("file")
+    args = parser.parse_args()
+    with open(args.file) as f:
+        inp = f.read()
+        tokens = tokenise(inp)
+        commands = parse(tokens)
+        output = run(commands)
     print(output)
