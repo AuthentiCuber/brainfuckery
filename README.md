@@ -18,7 +18,7 @@ Such features include:
 The idea is to keep these implementations as simple as possible while implementing all of BFs features.
 This means I will not be implementing any fancy optimisations or tricks.
 I am implementing these interpreters in the most straightforward way I can think of.
-The general design of the will be as follows:
+The general design is as follows:
 
     .bf file -> tokenisation -> parsing -> interpreter -> output
 
