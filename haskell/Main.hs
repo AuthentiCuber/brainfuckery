@@ -20,6 +20,7 @@ data Token = Token
   { tokType :: TokenType,
     param :: Int
   }
+  deriving (Show)
 
 isValidChar :: Char -> Bool
 isValidChar c = c `elem` bfChars
@@ -30,11 +31,7 @@ preprocess = filter isValidChar
 tokenise :: String -> [TokenType]
 tokenise = map getTokenType
 
-groupCond :: TokenType -> TokenType -> Bool
-groupCond JZ _ = False
-groupCond JNZ _ = False
-groupCond start curr = start == curr
-
+-- combine repeated instructions
 makeToken :: [TokenType] -> Token
 makeToken toks = Token (head toks) p
   where
@@ -42,6 +39,15 @@ makeToken toks = Token (head toks) p
 
 parse :: [TokenType] -> [Token]
 parse inp = map makeToken $ groupBy groupCond inp
+  where
+    groupCond :: TokenType -> TokenType -> Bool
+    groupCond JZ _ = False
+    groupCond JNZ _ = False
+    groupCond start curr = start == curr
+
+-- bachpatch jump positions
+resolveJumps :: [Token] -> [Token]
+resolveJumps toks = undefined
 
 main :: IO ()
 main = putStrLn "Hello BrainFuckery!"
