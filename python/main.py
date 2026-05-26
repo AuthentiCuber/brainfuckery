@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from io import StringIO
 
 
 class TokenType(Enum):
@@ -62,9 +63,40 @@ def parse(toks: list[TokenType]) -> list[Command]:
     return commands
 
 
+def run(comms: list[Command]) -> str:
+    output = StringIO()
+    ip = 0  # instruction pointer
+    dp = 0  # data pointer
+    memory = [0] * 30_000
+    while ip < len(comms):
+        comm = comms[ip]
+
+        match comm.tok_type:
+            case TokenType.DP_INC:
+                dp += comm.param
+            case TokenType.DP_DEC:
+                dp -= comm.param
+            case TokenType.DATA_INC:
+                memory[dp] += comm.param
+            case TokenType.DATA_DEC:
+                memory[dp] -= comm.param
+            case TokenType.JZ:
+                if memory[dp] == 0:
+                    dp = comm.param
+            case TokenType.JNZ:
+                if memory[dp] != 0:
+                    dp = comm.param
+            case TokenType.INPUT:
+                memory[dp] = ord(input())
+            case TokenType.OUTPUT:
+                output.write(chr(memory[dp]))
+
+    return output.getvalue()
+
+
 if __name__ == "__main__":
-    inp = ",++[-]."
+    inp = input()
     tokens = tokenise(inp)
-    print(tokens)
     commands = parse(tokens)
-    print(commands)
+    output = run(commands)
+    print(output)
