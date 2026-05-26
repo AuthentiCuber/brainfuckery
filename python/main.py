@@ -9,7 +9,7 @@ class TokenType(Enum):
     DATA_INC = "+"
     DATA_DEC = "-"
     INPUT = ","
-    OUTPUT = ","
+    OUTPUT = "."
     JZ = "["
     JNZ = "]"
 
@@ -21,6 +21,9 @@ BF_CHARS = [tt.value for tt in TokenType]
 class Command:
     tok_type: TokenType
     param: int  # instruction jump address for JZ & JNZ, number of repetitions otherwise
+
+    def __repr__(self) -> str:
+        return f"{self.tok_type.value}: {self.param}"
 
 
 def is_valid_bf(char: str) -> bool:
@@ -43,11 +46,13 @@ def parse(toks: list[TokenType]) -> list[Command]:
             )
             continue
 
-        if toks[index + 1] == tok:
-            counter += 1
-        else:
-            commands.append(Command(tok, counter))
-            counter = 1
+        if index + 1 < len(toks):
+            if toks[index + 1] == tok:
+                counter += 1
+                continue
+
+        commands.append(Command(tok, counter))
+        counter = 1
 
     # resolve jump locations
     loc_stack: list[int] = []
@@ -82,14 +87,19 @@ def run(comms: list[Command]) -> str:
                 memory[dp] -= comm.param
             case TokenType.JZ:
                 if memory[dp] == 0:
-                    dp = comm.param
+                    ip = comm.param
             case TokenType.JNZ:
                 if memory[dp] != 0:
-                    dp = comm.param
+                    ip = comm.param
             case TokenType.INPUT:
-                memory[dp] = ord(input())
+                for _ in range(comm.param):
+                    memory[dp] = ord(input())
             case TokenType.OUTPUT:
-                output.write(chr(memory[dp]))
+                for _ in range(comm.param):
+                    output.write(chr(memory[dp]))
+
+        dp %= 256
+        ip += 1
 
     return output.getvalue()
 
