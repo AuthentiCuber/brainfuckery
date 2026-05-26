@@ -70,36 +70,36 @@ def parse(toks: list[TokenType]) -> list[Command]:
 
 def run(comms: list[Command]) -> str:
     output = StringIO()
-    ip = 0  # instruction pointer
-    dp = 0  # data pointer
+    cmd_ptr = 0
+    data_ptr = 0
     memory = [0] * 30_000
-    while ip < len(comms):
-        comm = comms[ip]
+    while cmd_ptr < len(comms):
+        comm = comms[cmd_ptr]
 
         match comm.tok_type:
             case TokenType.DP_INC:
-                dp += comm.param
+                data_ptr += comm.param
             case TokenType.DP_DEC:
-                dp -= comm.param
+                data_ptr -= comm.param
             case TokenType.DATA_INC:
-                memory[dp] += comm.param
+                memory[data_ptr] += comm.param
             case TokenType.DATA_DEC:
-                memory[dp] -= comm.param
+                memory[data_ptr] -= comm.param
             case TokenType.JZ:
-                if memory[dp] == 0:
-                    ip = comm.param
+                if memory[data_ptr] == 0:
+                    cmd_ptr = comm.param
             case TokenType.JNZ:
-                if memory[dp] != 0:
-                    ip = comm.param
+                if memory[data_ptr] != 0:
+                    cmd_ptr = comm.param
             case TokenType.INPUT:
                 for _ in range(comm.param):
-                    memory[dp] = ord(input())
+                    memory[data_ptr] = ord(input())
             case TokenType.OUTPUT:
                 for _ in range(comm.param):
-                    output.write(chr(memory[dp]))
+                    output.write(chr(memory[data_ptr]))
 
-        dp %= 256
-        ip += 1
+        memory[data_ptr] %= 256
+        cmd_ptr += 1
 
     return output.getvalue()
 
