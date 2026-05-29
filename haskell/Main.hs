@@ -1,3 +1,4 @@
+import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Tuple
@@ -71,6 +72,36 @@ resolveJumps inp = map jump comms
     jump (i, tok@(Token t _))
       | isJump t = Token t $ fromMaybe (-1) $ lookup i indices
       | otherwise = tok
+
+data ProgState = ProgState
+  { commands :: [Token],
+    cmd_ptr :: Int,
+    data_ptr :: Int,
+    memory :: [Int],
+    output :: String
+  }
+
+stepProg :: ProgState -> Maybe ProgState
+stepProg prog@(ProgState cmds ip dp mem output)
+  | ip == length cmds = Nothing
+  | otherwise = Just $ executeCmd cmd
+  where
+    cmd = cmds !! ip
+    executeCmd (Token DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
+    executeCmd (Token DP_DEC amount) = ProgState cmds (ip + 1) (dp - amount) mem output
+    executeCmd (Token JZ loc) = jz $ mem !! dp
+      where
+        jz cellVal
+          | cellVal == 0 = ProgState cmds (loc + 1) dp mem output
+          | otherwise = ProgState cmds (ip + 1) dp mem output
+    executeCmd (Token JNZ loc) = jnz $ mem !! dp
+      where
+        jnz cellVal
+          | cellVal /= 0 = ProgState cmds (loc + 1) dp mem output
+          | otherwise = ProgState cmds (ip + 1) dp mem output
+    executeCmd (Token OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
+      where
+        cellData = mem !! dp
 
 main :: IO ()
 main = putStrLn "Hello BrainFuckery!"
