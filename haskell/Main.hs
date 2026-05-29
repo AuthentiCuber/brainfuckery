@@ -27,6 +27,11 @@ data Token = Token
 isValidChar :: Char -> Bool
 isValidChar c = c `elem` bfChars
 
+isJump :: TokenType -> Bool
+isJump JZ = True
+isJump JNZ = True
+isJump _ = False
+
 preprocess :: String -> String
 preprocess = filter isValidChar
 
@@ -59,16 +64,13 @@ resolveJumps :: [Token] -> [Token]
 resolveJumps inp = map jump comms
   where
     comms = zip [0 ..] inp
-    jumps = filter isJump comms
-    isJump (_, Token JZ _) = True
-    isJump (_, Token JNZ _) = True
-    isJump _ = False
+    jumps = filter (\(_, Token t _) -> isJump t) comms
     forwardIndices = resolveJumps' jumps [] []
     revIndices = map swap forwardIndices
     indices = forwardIndices ++ revIndices
-    jump (i, Token JZ _) = Token JZ $ fromMaybe (-1) $ lookup i indices
-    jump (i, Token JNZ _) = Token JNZ $ fromMaybe (-1) $ lookup i indices
-    jump (_, t) = t
+    jump (i, tok@(Token t _))
+      | isJump t = Token t $ fromMaybe (-1) $ lookup i indices
+      | otherwise = tok
 
 main :: IO ()
 main = putStrLn "Hello BrainFuckery!"
