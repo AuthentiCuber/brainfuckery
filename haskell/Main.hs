@@ -1,3 +1,5 @@
+import Data.Array (Array, (!), (//))
+import Data.Array qualified as A
 import Data.Char
 import Data.List
 import Data.Maybe
@@ -77,7 +79,7 @@ data ProgState = ProgState
   { commands :: [Token],
     cmd_ptr :: Int,
     data_ptr :: Int,
-    memory :: [Int],
+    memory :: Array Int Int,
     output :: String
   }
 
@@ -89,19 +91,25 @@ stepProg prog@(ProgState cmds ip dp mem output)
     cmd = cmds !! ip
     executeCmd (Token DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
     executeCmd (Token DP_DEC amount) = ProgState cmds (ip + 1) (dp - amount) mem output
-    executeCmd (Token JZ loc) = jz $ mem !! dp
+    executeCmd (Token DATA_INC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+      where
+        newVal = (mem ! dp) + amount
+    executeCmd (Token DATA_DEC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+      where
+        newVal = (mem ! dp) - amount
+    executeCmd (Token JZ loc) = jz $ mem ! dp
       where
         jz cellVal
           | cellVal == 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Token JNZ loc) = jnz $ mem !! dp
+    executeCmd (Token JNZ loc) = jnz $ mem ! dp
       where
         jnz cellVal
           | cellVal /= 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
     executeCmd (Token OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
       where
-        cellData = mem !! dp
+        cellData = mem ! dp
 
 main :: IO ()
 main = putStrLn "Hello BrainFuckery!"
