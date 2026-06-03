@@ -105,8 +105,9 @@ stepProg (ProgState cmds ip dp mem output) = executeCmd cmd
         jnz cellVal
           | cellVal /= 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
+    executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem newOut
       where
+        newOut = output ++ [chr cellData | _ <- [1 .. amount]]
         cellData = mem ! dp
 
 runProg :: ProgState -> String
@@ -115,7 +116,7 @@ runProg prog
   | otherwise = runProg $ stepProg prog
 
 run :: String -> String
-run inp = reverse $ runProg $ ProgState cmds 0 0 mem ""
+run inp = runProg $ ProgState cmds 0 0 mem ""
   where
     cmds = resolveJumps $ parse $ tokenise inp
     mem = A.listArray (0, memSize) [0 | _ <- [0 .. memSize]]
