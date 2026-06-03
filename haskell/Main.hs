@@ -107,7 +107,7 @@ stepProg (ProgState cmds ip dp mem output) = executeCmd cmd
           | otherwise = ProgState cmds (ip + 1) dp mem output
     executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem newOut
       where
-        newOut = output ++ [chr cellData | _ <- [1 .. amount]]
+        newOut = output ++ replicate amount (chr cellData)
         cellData = mem ! dp
 
 runProg :: ProgState -> String
@@ -119,7 +119,7 @@ run :: String -> String
 run inp = runProg $ ProgState cmds 0 0 mem ""
   where
     cmds = resolveJumps $ parse $ tokenise inp
-    mem = A.listArray (0, memSize) [0 | _ <- [0 .. memSize]]
+    mem = A.listArray (0, memSize) $ replicate memSize 0
     memSize = 30000
 
 main :: IO ()
