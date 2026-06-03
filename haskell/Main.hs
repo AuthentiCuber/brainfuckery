@@ -21,7 +21,7 @@ getTokenType '.' = OUTPUT
 getTokenType '[' = JZ
 getTokenType ']' = JNZ
 
-data Token = Token
+data Command = Command
   { tokType :: TokenType,
     param :: Int
   }
@@ -42,12 +42,12 @@ tokenise :: String -> [TokenType]
 tokenise = map getTokenType
 
 -- combine repeated instructions
-makeToken :: [TokenType] -> Token
-makeToken toks = Token (head toks) p
+makeToken :: [TokenType] -> Command
+makeToken toks = Command (head toks) p
   where
     p = length toks
 
-parse :: [TokenType] -> [Token]
+parse :: [TokenType] -> [Command]
 parse inp = map makeToken $ groupBy groupCond inp
   where
     groupCond :: TokenType -> TokenType -> Bool
@@ -56,27 +56,27 @@ parse inp = map makeToken $ groupBy groupCond inp
     groupCond start curr = start == curr
 
 -- bachpatch jump positions
-resolveJumps' :: [(Int, Token)] -> [Int] -> [(Int, Int)] -> [(Int, Int)]
+resolveJumps' :: [(Int, Command)] -> [Int] -> [(Int, Int)] -> [(Int, Int)]
 resolveJumps' [] stack pairs = pairs
-resolveJumps' ((index, Token JZ _) : rest) stack pairs =
+resolveJumps' ((index, Command JZ _) : rest) stack pairs =
   resolveJumps' rest (index : stack) pairs
-resolveJumps' ((index, Token JNZ _) : rest) stack pairs =
+resolveJumps' ((index, Command JNZ _) : rest) stack pairs =
   resolveJumps' rest (tail stack) ((head stack, index) : pairs)
 
-resolveJumps :: [Token] -> [Token]
+resolveJumps :: [Command] -> [Command]
 resolveJumps inp = map jump comms
   where
     comms = zip [0 ..] inp
-    jumps = filter (\(_, Token t _) -> isJump t) comms
+    jumps = filter (\(_, Command t _) -> isJump t) comms
     forwardIndices = resolveJumps' jumps [] []
     revIndices = map swap forwardIndices
     indices = forwardIndices ++ revIndices
-    jump (i, tok@(Token t _))
-      | isJump t = Token t $ fromMaybe (-1) $ lookup i indices
+    jump (i, tok@(Command t _))
+      | isJump t = Command t $ fromMaybe (-1) $ lookup i indices
       | otherwise = tok
 
 data ProgState = ProgState
-  { commands :: [Token],
+  { commands :: [Command],
     cmd_ptr :: Int,
     data_ptr :: Int,
     memory :: Array Int Int,
@@ -84,30 +84,30 @@ data ProgState = ProgState
   }
 
 stepProg :: ProgState -> Maybe ProgState
-stepProg prog@(ProgState cmds ip dp mem output)
+stepProg (ProgState cmds ip dp mem output)
   | ip == length cmds = Nothing
   | otherwise = Just $ executeCmd cmd
   where
     cmd = cmds !! ip
-    executeCmd (Token DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
-    executeCmd (Token DP_DEC amount) = ProgState cmds (ip + 1) (dp - amount) mem output
-    executeCmd (Token DATA_INC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+    executeCmd (Command DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
+    executeCmd (Command DP_DEC amount) = ProgState cmds (ip + 1) (dp - amount) mem output
+    executeCmd (Command DATA_INC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
       where
         newVal = (mem ! dp) + amount
-    executeCmd (Token DATA_DEC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+    executeCmd (Command DATA_DEC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
       where
         newVal = (mem ! dp) - amount
-    executeCmd (Token JZ loc) = jz $ mem ! dp
+    executeCmd (Command JZ loc) = jz $ mem ! dp
       where
         jz cellVal
           | cellVal == 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Token JNZ loc) = jnz $ mem ! dp
+    executeCmd (Command JNZ loc) = jnz $ mem ! dp
       where
         jnz cellVal
           | cellVal /= 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Token OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
+    executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
       where
         cellData = mem ! dp
 
