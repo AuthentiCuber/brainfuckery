@@ -83,10 +83,8 @@ data ProgState = ProgState
     output :: String
   }
 
-stepProg :: ProgState -> Maybe ProgState
-stepProg (ProgState cmds ip dp mem output)
-  | ip == length cmds = Nothing
-  | otherwise = Just $ executeCmd cmd
+stepProg :: ProgState -> ProgState
+stepProg (ProgState cmds ip dp mem output) = executeCmd cmd
   where
     cmd = cmds !! ip
     executeCmd (Command DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
@@ -110,6 +108,18 @@ stepProg (ProgState cmds ip dp mem output)
     executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem (chr cellData : output)
       where
         cellData = mem ! dp
+
+runProg :: ProgState -> String
+runProg prog
+  | cmd_ptr prog == length (commands prog) = output prog
+  | otherwise = runProg $ stepProg prog
+
+run :: String -> String
+run inp = reverse $ runProg $ ProgState cmds 0 0 mem ""
+  where
+    cmds = resolveJumps $ parse $ tokenise inp
+    mem = A.listArray (0, memSize) [0 | _ <- [0 .. memSize]]
+    memSize = 30000
 
 main :: IO ()
 main = putStrLn "Hello BrainFuckery!"
