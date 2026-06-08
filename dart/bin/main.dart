@@ -83,6 +83,23 @@ List<Command> parse(List<TokenType> toks) {
     cmds.add(Command(currTok, tokCounter));
     tokCounter = 1;
   }
+
+  List<int> jumpLocStack = [];
+  for (var i = 0; i < cmds.length; i++) {
+    switch (cmds[i].tokType) {
+      case TokenType.jz:
+        jumpLocStack.add(i);
+        break;
+      case TokenType.jnz:
+        final jmpLoc = jumpLocStack.removeAt(0);
+        cmds[i].param = jmpLoc;
+        cmds[jmpLoc].param = i;
+        break;
+      default:
+        break;
+    }
+  }
+
   return cmds;
 }
 
