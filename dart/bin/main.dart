@@ -34,11 +34,17 @@ enum TokenType {
         throw StateError("This should never happen");
     }
   }
+
+  static bool isJump(TokenType tok) {
+    return [TokenType.jz, TokenType.jnz].contains(tok);
+  }
 }
 
 class Command {
   TokenType? tokType;
   int? param;
+
+  Command(this.tokType, this.param);
 }
 
 const bfChars = "><+-[],.";
@@ -57,7 +63,31 @@ List<TokenType> tokenise(String inp) {
   return toks;
 }
 
+List<Command> parse(List<TokenType> toks) {
+  List<Command> cmds = [];
+  int tokCounter = 1;
+  for (var i = 0; i < toks.length; i++) {
+    final currTok = toks[i];
+    if (TokenType.isJump(currTok)) {
+      cmds.add(Command(currTok, -1));
+      continue;
+    }
+
+    if (i + 1 < toks.length) {
+      if (toks[i + 1] == currTok) {
+        tokCounter++;
+        continue;
+      }
+    }
+
+    cmds.add(Command(currTok, tokCounter));
+    tokCounter = 1;
+  }
+  return cmds;
+}
+
 void main(List<String> arguments) {
   final toks = tokenise("++++++++[>+++++++++<-]>.");
-  print(toks);
+  final cmds = parse(toks);
+  cmds.forEach((cmd) => print("${cmd.tokType}:${cmd.param}"));
 }
