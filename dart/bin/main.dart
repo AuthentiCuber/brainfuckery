@@ -41,8 +41,8 @@ enum TokenType {
 }
 
 class Command {
-  TokenType? tokType;
-  int? param;
+  TokenType tokType;
+  int param;
 
   Command(this.tokType, this.param);
 }
@@ -91,7 +91,7 @@ List<Command> parse(List<TokenType> toks) {
         jumpLocStack.add(i);
         break;
       case TokenType.jnz:
-        final jmpLoc = jumpLocStack.removeAt(0);
+        final jmpLoc = jumpLocStack.removeLast();
         cmds[i].param = jmpLoc;
         cmds[jmpLoc].param = i;
         break;
@@ -103,8 +103,57 @@ List<Command> parse(List<TokenType> toks) {
   return cmds;
 }
 
+String run(List<Command> cmds) {
+  var output = StringBuffer();
+  var memory = List.filled(30000, 0);
+  var dataPtr = 0;
+  var cmdPtr = 0;
+  while (cmdPtr < cmds.length) {
+    var currCmd = cmds[cmdPtr];
+
+    switch (currCmd.tokType) {
+      case TokenType.dpInc:
+        dataPtr += currCmd.param;
+        break;
+      case TokenType.dpDec:
+        dataPtr -= currCmd.param;
+        break;
+      case TokenType.dataInc:
+        memory[dataPtr] += currCmd.param;
+        break;
+      case TokenType.dataDec:
+        memory[dataPtr] -= currCmd.param;
+        break;
+      case TokenType.input:
+        break;
+      case TokenType.output:
+        output.writeAll(
+          List.filled(currCmd.param, String.fromCharCode(memory[dataPtr])),
+        );
+        break;
+      case TokenType.jz:
+        if (memory[dataPtr] == 0) {
+          cmdPtr = currCmd.param;
+        }
+        break;
+      case TokenType.jnz:
+        if (memory[dataPtr] != 0) {
+          cmdPtr = currCmd.param;
+        }
+        break;
+    }
+
+    memory[dataPtr] %= 256;
+    cmdPtr++;
+  }
+  return output.toString();
+}
+
 void main(List<String> arguments) {
-  final toks = tokenise("++++++++[>+++++++++<-]>.");
+  final toks = tokenise(
+    "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
+  );
   final cmds = parse(toks);
-  cmds.forEach((cmd) => print("${cmd.tokType}:${cmd.param}"));
+  final output = run(cmds);
+  print(output);
 }
