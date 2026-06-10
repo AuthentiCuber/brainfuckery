@@ -1,3 +1,5 @@
+import 'dart:io';
+
 enum TokenType {
   dpInc(">"),
   dpDec("<"),
@@ -125,6 +127,7 @@ String run(List<Command> cmds) {
         memory[dataPtr] -= currCmd.param;
         break;
       case TokenType.input:
+        memory[dataPtr] = stdin.readByteSync();
         break;
       case TokenType.output:
         output.writeAll(
@@ -150,9 +153,7 @@ String run(List<Command> cmds) {
 }
 
 void main(List<String> arguments) {
-  final toks = tokenise(
-    "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
-  );
+  final toks = tokenise(",.");
   final cmds = parse(toks);
   final output = run(cmds);
   print(output);
