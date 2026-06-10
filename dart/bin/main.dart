@@ -153,7 +153,10 @@ String run(List<Command> cmds) {
 }
 
 void main(List<String> arguments) {
-  final toks = tokenise(",.");
+  final inputFilePath = arguments[0];
+  final file = File(inputFilePath);
+  final bfInput = file.readAsStringSync();
+  final toks = tokenise(bfInput);
   final cmds = parse(toks);
   final output = run(cmds);
   print(output);
