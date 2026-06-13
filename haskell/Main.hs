@@ -4,6 +4,8 @@ import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Tuple
+import System.Environment
+import System.IO
 
 bfChars :: [Char]
 bfChars = "><+-,.[]"
@@ -125,12 +127,14 @@ runProg prog
 run :: String -> IO String
 run inp = runProg $ ProgState cmds 0 0 mem ""
   where
-    cmds = resolveJumps $ parse $ tokenise inp
+    cmds = resolveJumps $ parse $ tokenise $ preprocess inp
     mem = A.listArray (0, memSize) $ replicate memSize 0
     memSize = 30000
 
 main :: IO ()
 main = do
-  let input = "++++++++[>+++++++++<-]>.,."
+  args <- getArgs
+  let inputFile = head args
+  input <- readFile inputFile
   result <- run input
-  putStrLn result
+  putStr result
