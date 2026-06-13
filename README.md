@@ -34,9 +34,9 @@ Inspired by [Tsoding's BF JIT compiler](https://github.com/tsoding/bfjit).
 ## Languages
 
 - [x] python
-- [ ] C
+- [ ] C (in progress)
 - [x] Dart
-- [ ] Haskell (in progress)
+- [x] Haskell
 - [ ] Javascript
 
 more to come ...
