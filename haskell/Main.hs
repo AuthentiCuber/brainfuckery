@@ -83,39 +83,46 @@ data ProgState = ProgState
     output :: String
   }
 
-stepProg :: ProgState -> ProgState
+stepProg :: ProgState -> IO ProgState
 stepProg (ProgState cmds ip dp mem output) = executeCmd cmd
   where
     cmd = cmds !! ip
-    executeCmd (Command DP_INC amount) = ProgState cmds (ip + 1) (dp + amount) mem output
-    executeCmd (Command DP_DEC amount) = ProgState cmds (ip + 1) (dp - amount) mem output
-    executeCmd (Command DATA_INC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+    executeCmd :: Command -> IO ProgState
+    executeCmd (Command DP_INC amount) = pure $ ProgState cmds (ip + 1) (dp + amount) mem output
+    executeCmd (Command DP_DEC amount) = pure $ ProgState cmds (ip + 1) (dp - amount) mem output
+    executeCmd (Command DATA_INC amount) = pure $ ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
       where
         newVal = (mem ! dp) + amount
-    executeCmd (Command DATA_DEC amount) = ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
+    executeCmd (Command DATA_DEC amount) = pure $ ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
       where
         newVal = (mem ! dp) - amount
-    executeCmd (Command JZ loc) = jz $ mem ! dp
+    executeCmd (Command JZ loc) = pure $ jz $ mem ! dp
       where
         jz cellVal
           | cellVal == 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Command JNZ loc) = jnz $ mem ! dp
+    executeCmd (Command JNZ loc) = pure $ jnz $ mem ! dp
       where
         jnz cellVal
           | cellVal /= 0 = ProgState cmds (loc + 1) dp mem output
           | otherwise = ProgState cmds (ip + 1) dp mem output
-    executeCmd (Command OUTPUT amount) = ProgState cmds (ip + 1) dp mem newOut
+    executeCmd (Command OUTPUT amount) = pure $ ProgState cmds (ip + 1) dp mem newOut
       where
         newOut = output ++ replicate amount (chr cellData)
         cellData = mem ! dp
+    executeCmd (Command INPUT _) = do
+      c <- getChar
+      let newVal = ord c
+      return $ ProgState cmds (ip + 1) dp (mem // [(dp, newVal)]) output
 
-runProg :: ProgState -> String
+runProg :: ProgState -> IO String
 runProg prog
-  | cmd_ptr prog == length (commands prog) = output prog
-  | otherwise = runProg $ stepProg prog
+  | cmd_ptr prog == length (commands prog) = pure $ output prog
+  | otherwise = do
+      newState <- stepProg prog
+      runProg newState
 
-run :: String -> String
+run :: String -> IO String
 run inp = runProg $ ProgState cmds 0 0 mem ""
   where
     cmds = resolveJumps $ parse $ tokenise inp
@@ -123,4 +130,7 @@ run inp = runProg $ ProgState cmds 0 0 mem ""
     memSize = 30000
 
 main :: IO ()
-main = putStrLn "Hello BrainFuckery!"
+main = do
+  let input = "++++++++[>+++++++++<-]>.,."
+  result <- run input
+  putStrLn result
