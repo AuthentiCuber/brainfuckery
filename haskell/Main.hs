@@ -131,10 +131,14 @@ run inp = runProg $ ProgState cmds 0 0 mem ""
     mem = A.listArray (0, memSize) $ replicate memSize 0
     memSize = 30000
 
+parseArgs :: [String] -> IO String
+parseArgs (x1 : xs)
+  | x1 == "--literal" || x1 == "-l" = pure $ head xs
+  | otherwise = readFile x1
+
 main :: IO ()
 main = do
   args <- getArgs
-  let inputFile = head args
-  input <- readFile inputFile
+  input <- parseArgs args
   result <- run input
   putStr result
