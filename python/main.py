@@ -62,9 +62,14 @@ def parse(toks: list[TokenType]) -> list[Command]:
             case TokenType.JZ:
                 loc_stack.append(index)
             case TokenType.JNZ:
-                loc = loc_stack.pop()
+                try:
+                    loc = loc_stack.pop()
+                except IndexError:
+                    raise SyntaxError("Closing bracket with no opening bracket found!")
                 comm.param = loc
                 commands[loc].param = index
+    if loc_stack != []:
+        raise SyntaxError("Unclosed opening bracket(s)!")
 
     return commands
 
