@@ -107,11 +107,23 @@ def run(comms: list[Command]) -> str:
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("file")
+    parser.add_argument("input")
+    parser.add_argument(
+        "--literal",
+        "-l",
+        action="store_false",
+        help="Treat the input as literal Brainfuck code rather than a filepath. (default: %(default)s)",
+    )
+
     args = parser.parse_args()
-    with open(args.file) as f:
-        inp = f.read()
-        tokens = tokenise(inp)
-        commands = parse(tokens)
-        output = run(commands)
+    inp: str
+    if args.literal is True:
+        with open(args.input) as f:
+            inp = f.read()
+    else:
+        inp = args.input
+
+    tokens = tokenise(inp)
+    commands = parse(tokens)
+    output = run(commands)
     print(output)
