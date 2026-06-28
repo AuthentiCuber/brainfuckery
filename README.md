@@ -34,7 +34,7 @@ Inspired by [Tsoding's BF JIT compiler](https://github.com/tsoding/bfjit).
 ## Languages
 
 - [x] python
-- [x] C
+- [x] C (has now moved to its own [repository](https://github.com/AuthentiCuber/cbf))
 - [x] Dart
 - [x] Haskell
 - [ ] Javascript
